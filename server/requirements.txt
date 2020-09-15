@@ -1,0 +1,6 @@
+Flask
+numpy
+opencv-python
+gunicorn
+torch >= 1.0.0
+
