@@ -63,7 +63,7 @@ def response(data):
 
     print("fps:", data["frameid"]/(time.time()-s))
 
-    heapq.heappush(PriorityQueue, (frameid, result_img))
+    heapq.heappush(PriorityQueue, (data["frameid"], result_img))
 
     # cv2.imshow('res', result_img)
     print(sum(his)/len(his))
@@ -71,25 +71,25 @@ def response(data):
 frameid = 0
 prev = 0
 while True:
-    time_elapsed = time.time() - prev
+    # time_elapsed = time.time() - prev
     rval, image = cap.read()
     if not rval:
         break
-    if time_elapsed > 1./FRAME_RATE:
-        prev = time.time()
+    # if time_elapsed > 1./FRAME_RATE:
+    # prev = time.time()
 
-        _, img_encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 50])
+    _, img_encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 50])
 
-        data = {
-            "image": img_encoded.tostring(),
-            "frameid": frameid,
-            "send_time": time.time()
-        }
+    data = {
+        "image": img_encoded.tostring(),
+        "frameid": frameid,
+        "send_time": time.time()
+    }
 
-        sio.emit("image", data)
+    sio.emit("image", data)
 
-        CircularBuffer[frameid % BUFFER_SIZE] = (image, data["send_time"])
-        frameid += 1
+    CircularBuffer[frameid % BUFFER_SIZE] = (image, data["send_time"])
+    frameid += 1
 
     if len(PriorityQueue):
         _, result_img = heapq.heappop(PriorityQueue)
