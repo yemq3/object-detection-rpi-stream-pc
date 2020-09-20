@@ -2,9 +2,17 @@ from app.yolov4.tool.utils import *
 from app.yolov4.tool.torch_utils import *
 from app.yolov4.tool.darknet2pytorch import Darknet
 
+USE_CUDA = True
+
+# darknet = Darknet("./app/yolov4/cfg/yolov4.cfg")
+# darknet.load_weights("./app/yolov4/weight/yolov4.weights")
+
 darknet = Darknet("./app/yolov4/cfg/yolov4-tiny.cfg")
-darknet.print_network()
 darknet.load_weights("./app/yolov4/weight/yolov4-tiny.weights")
+if USE_CUDA:
+    darknet.cuda()
+
+darknet.print_network()
 
 num_classes = darknet.num_classes
 if num_classes == 20:

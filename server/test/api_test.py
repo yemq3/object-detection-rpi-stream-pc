@@ -43,16 +43,19 @@ s = requests.session()
 while True:
     rval, image = cap.read()
     if rval:
+        start = time.time()
         _, img_encoded = cv2.imencode('.jpg', image)
 
-        start = time.time()
+        # start = time.time()
         r = s.post(url, data=img_encoded.tostring(), headers=headers)
         boxes = json.loads(r.json()["boxes"])
-        finish = time.time()
-        print(finish-start)
+        # finish = time.time()
+        # print(finish-start)
 
         result_img = plot_boxes_cv2(image, boxes)
         cv2.imshow('res', result_img)
+        finish = time.time()
+        print(finish-start)
         key = cv2.waitKey(10)
         if key == 27:
             break

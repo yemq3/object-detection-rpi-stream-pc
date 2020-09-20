@@ -21,7 +21,7 @@ def hello(message):
     sized = cv2.resize(img, (darknet.width, darknet.height))
     sized = cv2.cvtColor(sized, cv2.COLOR_BGR2RGB)
     
-    boxes = do_detect(darknet, sized, 0.4, 0.6, False)
+    boxes = do_detect(darknet, sized, 0.4, 0.6, USE_CUDA)
     boxes = np.array(boxes[0]).tolist()
 
     for i in range(len(boxes)):

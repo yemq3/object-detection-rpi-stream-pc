@@ -3,23 +3,26 @@ import cv2
 import json
 import numpy as np
 import time
+import heapq
 
 BUFFER_SIZE = 100
-FRAME_RATE = 8
+FRAME_RATE = 60
 CircularBuffer = [None for _ in range(BUFFER_SIZE)]
+PriorityQueue = []
 
 url = "http://127.0.0.1"
 
 cap = cv2.VideoCapture(0)
 assert cap.isOpened()
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 cap.set(cv2.CAP_PROP_FPS, FRAME_RATE)
 
 sio = socketio.Client()
 sio.connect(url)
 print("sid:", sio.sid)
+s = time.time()
 
 def plot_boxes_cv2(img, boxes):
     img = np.copy(img)
@@ -45,19 +48,25 @@ def plot_boxes_cv2(img, boxes):
 
     return img
 
-
+his = []
 @sio.event
 def response(data):
     image, send_time = CircularBuffer[data["frameid"] % BUFFER_SIZE]
     boxes = json.loads(data["boxes"])
 
     delay = time.time()-send_time
+    print(frameid, data["frameid"])
     print("delay:", delay)
+    his.append(delay)
 
     result_img = plot_boxes_cv2(image, boxes)
-    cv2.imshow('res', result_img)
-    cv2.waitKey(0)
 
+    print("fps:", data["frameid"]/(time.time()-s))
+
+    heapq.heappush(PriorityQueue, (frameid, result_img))
+
+    # cv2.imshow('res', result_img)
+    print(sum(his)/len(his))
 
 frameid = 0
 prev = 0
@@ -69,7 +78,7 @@ while True:
     if time_elapsed > 1./FRAME_RATE:
         prev = time.time()
 
-        _, img_encoded = cv2.imencode('.jpg', image)
+        _, img_encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 50])
 
         data = {
             "image": img_encoded.tostring(),
@@ -81,6 +90,11 @@ while True:
 
         CircularBuffer[frameid % BUFFER_SIZE] = (image, data["send_time"])
         frameid += 1
+
+    if len(PriorityQueue):
+        _, result_img = heapq.heappop(PriorityQueue)
+        cv2.imshow('res', result_img)
+        cv2.waitKey(10)
 
 cap.release()
 cv2.destroyAllWindows()
