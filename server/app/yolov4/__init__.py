@@ -2,7 +2,7 @@ from app.yolov4.tool.utils import *
 from app.yolov4.tool.torch_utils import *
 from app.yolov4.tool.darknet2pytorch import Darknet
 
-USE_CUDA = True
+USE_CUDA = False
 
 # darknet = Darknet("./app/yolov4/cfg/yolov4.cfg")
 # darknet.load_weights("./app/yolov4/weight/yolov4.weights")
