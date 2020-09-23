@@ -1,6 +1,10 @@
-Flask
+flask
 numpy
 opencv-python
 gunicorn
+flask-socketio
+python-socketio[client]
+eventlet
 torch >= 1.0.0
+
 
