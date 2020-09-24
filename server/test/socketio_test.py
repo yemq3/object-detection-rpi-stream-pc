@@ -6,7 +6,7 @@ import time
 import heapq
 
 BUFFER_SIZE = 100
-FRAME_RATE = 60
+FRAME_RATE = 10
 CircularBuffer = [None for _ in range(BUFFER_SIZE)]
 PriorityQueue = []
 
@@ -42,7 +42,7 @@ def plot_boxes_cv2(img, boxes):
         if len(box) == 7:
             cls_conf = box[5]
             cls_name = box[6]
-            print('%s: %f' % (cls_name, cls_conf))
+            # print('%s: %f' % (cls_name, cls_conf))
             img = cv2.putText(img, cls_name, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, rgb, 1)
         img = cv2.rectangle(img, (x1, y1), (x2, y2), rgb, 1)
 
@@ -61,40 +61,41 @@ def response(data):
 
     result_img = plot_boxes_cv2(image, boxes)
 
-    print("fps:", data["frameid"]/(time.time()-s))
+    print("process fps:", data["frameid"]/(time.time()-s))
 
     heapq.heappush(PriorityQueue, (data["frameid"], result_img))
 
     # cv2.imshow('res', result_img)
-    print(sum(his)/len(his))
+    # print(sum(his)/len(his))
 
 frameid = 0
-prev = 0
+prev = time.time()
 while True:
-    # time_elapsed = time.time() - prev
+    time_elapsed = time.time() - prev
     rval, image = cap.read()
     if not rval:
         break
-    # if time_elapsed > 1./FRAME_RATE:
-    # prev = time.time()
+    if time_elapsed > 1./FRAME_RATE:
+        prev = time.time()
+        print("send fps:", 1/time_elapsed)
 
-    _, img_encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 50])
+        _, img_encoded = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, 50])
 
-    data = {
-        "image": img_encoded.tostring(),
-        "frameid": frameid,
-        "send_time": time.time()
-    }
+        data = {
+            "image": img_encoded.tostring(),
+            "frameid": frameid,
+            "send_time": time.time()
+        }
 
-    sio.emit("image", data)
+        sio.emit("image", data)
 
-    CircularBuffer[frameid % BUFFER_SIZE] = (image, data["send_time"])
-    frameid += 1
+        CircularBuffer[frameid % BUFFER_SIZE] = (image, data["send_time"])
+        frameid += 1
 
-    if len(PriorityQueue):
-        _, result_img = heapq.heappop(PriorityQueue)
-        cv2.imshow('res', result_img)
-        cv2.waitKey(10)
+        if len(PriorityQueue):
+            _, result_img = heapq.heappop(PriorityQueue)
+            cv2.imshow('res', result_img)
+            cv2.waitKey(1)
 
 cap.release()
 cv2.destroyAllWindows()

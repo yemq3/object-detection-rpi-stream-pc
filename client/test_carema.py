@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import time
 
-FRAME_RATE = 30
+FRAME_RATE = 60
 
 cap = cv2.VideoCapture(0)
 assert cap.isOpened()
