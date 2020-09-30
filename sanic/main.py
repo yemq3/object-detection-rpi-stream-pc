@@ -6,6 +6,7 @@ import json
 import cv2
 import pickle
 import asyncio
+import random # just for test
 
 app = Sanic("test")
 
@@ -34,8 +35,11 @@ async def getImage(request, ws):
         
         response = {
             'frameid': recv_data["frameid"],
-            'boxes' : boxes
+            'boxes': boxes,
+            'send_time': time.time()
         }
+
+        # time.sleep(0.05 * (recv_data["frameid"]//100))
 
         response_data = pickle.dumps(response)
 
